@@ -22,7 +22,7 @@ module WithAdvisoryLock
     def initialize(connection, lock_name, timeout_seconds)
       @connection = connection
       @lock_name = lock_name
-      @timeout_seconds = timeout_seconds
+      @timeout_seconds = timeout_seconds || 5
     end
 
     def lock_str
@@ -60,8 +60,8 @@ module WithAdvisoryLock
     end
 
     def yield_with_lock_and_timeout(&block)
-      give_up_at = Time.now + @timeout_seconds if @timeout_seconds
-      while @timeout_seconds.nil? || Time.now < give_up_at do
+      give_up_at = Time.now + timeout_seconds
+      while Time.now < give_up_at do
         r = yield_with_lock(&block)
         return r if r.lock_was_acquired?
         # Randomizing sleep time may help reduce contention.
